@@ -29,6 +29,5 @@ clean:
 	rm -f *.o
 	rm -f $(PROJECT).elf
 	rm -f $(PROJECT).bin
-	rm -f $(PROJECT).map
+	rm -f $(PROJECT).hex
 	rm -f $(PROJECT).lst
-	rm -f $(PROJECT).map
