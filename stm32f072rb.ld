@@ -6,15 +6,42 @@ MEMORY
     ram (xrw)   : ORIGIN = 0x20000000, LENGTH = 16K
 }
 
-_estack = 0x20004000;
+_stack_size = 1024;
+_stack_end = ORIGIN(ram) + LENGTH(ram); /* end of RAM */
+_stack_start = _stack_end - _stack_size;
 
 SECTIONS
 {
-    .text :
+    .isr_vector :
     {
+        . = ALIGN(4);
+        KEEP(*(.isr_vector))
+        . = ALIGN(4);
     } >flash
 
-    .data
+    .text :
+    {        
+        . = ALIGN(4);
+        *(.text)
+        . = ALIGN(4);
+    } >flash
+
+    .data :
     {
+        . = ALIGN(4);
+        *(.data)
+        . = ALIGN(4);
+    } >ram
+
+    .bss :
+    {
+        __bss_start__ = .;
+        __bss_end__ = .;
+    } >ram
+
+    . = _stack_start;
+    ._stack : 
+    {
+        . = . + _stack_size;
     } >ram
 }
