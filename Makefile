@@ -23,7 +23,7 @@ $(PROJECT).elf:  $(SRC)
 	$(SIZE) $(PROJECT).elf
 
 program: $(PROJECT).bin
-	openocd -f /usr/share/openocd/scripts/board/st_nucleo_f0.cfg st_nucleo_f0.cfg -f flash_stm.cfg -c "flash_stm $(PROJECT).bin"
+	openocd -f /usr/share/openocd/scripts/board/st_nucleo_f0.cfg st_nucleo_f0.cfg -f flash.cfg -c "flash_stm $(PROJECT).bin"
 
 clean:
 	rm -f *.o
