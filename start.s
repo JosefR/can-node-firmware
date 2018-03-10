@@ -3,13 +3,21 @@
 .fpu softvfp
 .thumb
 
-
-.section .isr_vector, "x"
-.word _stack_start // initial SP at end of RAM
+.section .isr_vector, "a"
+.word _stack_end // initial SP at end of RAM
 .word reset_handler //reset
 .word failure_handler // NMI
 .word failure_handler // HardFault
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
 .word failure_handler // SVCall
+.word 0
+.word 0
 .word failure_handler // PendSV
 .word failure_handler // SysTick
 .word failure_handler // WWDG
@@ -46,13 +54,19 @@
 .word failure_handler // USB
 
 
-.global reset_handler
+
+.section .text
+
+.weak reset_handler
+.type reset_handler, %function
 reset_handler:
-/*ldr r0, =_stack_start
-mov sp, r0*/
+ldr r0, =_stack_end
+mov sp, r0
 bl main
 b failure_handler
 
 
+.weak failure_handler
+.type failure_handler, %function
 failure_handler:
 b .

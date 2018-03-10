@@ -45,3 +45,4 @@ SECTIONS
         . = . + _stack_size;
     } >ram
 }
+
