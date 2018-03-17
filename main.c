@@ -7,16 +7,14 @@ void clock_init()
 {
     // just use the default internal RC oscillator for now
 
-    // enable GPIO peripheral clock for port A
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    // enable GPIO peripheral clock for port B
+    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 }
 
 void gpio_init()
 {
-//    *(GPIO_B_MODER) |= (0x50000000); // GPIO B14 and B15 are outputs
-
-    // set PA5 to output
-    GPIOA->MODER |=  GPIO_MODER_MODER5_0;
+    // set B14 and B15 to output
+    GPIOB->MODER |=  GPIO_MODER_MODER14_0 | GPIO_MODER_MODER15_0;
 
 }
 
@@ -33,9 +31,9 @@ int main()
         i++;
 
         if (led) {
-            GPIOA->ODR |= (GPIO_ODR_5);
+            GPIOB->ODR |= (GPIO_ODR_14 | GPIO_ODR_15);
         } else {
-            GPIOA->ODR &= ~(GPIO_ODR_5);
+            GPIOB->ODR &= ~(GPIO_ODR_14 | GPIO_ODR_15);
         }
 
         led = !led;
