@@ -1,7 +1,7 @@
 PROJECT=can-node-firmware
 
 SRC = start.s main.c
-INC = 
+INC = -ICMSIS/Include
 
 CC = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
