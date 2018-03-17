@@ -1,7 +1,7 @@
 PROJECT=can-node-firmware
 
-SRC = start.s main.c
-INC = -ICMSIS/Include
+SRC = start.s display.c main.c
+INC = -ICMSIS/Include -ICMSIS/Device/ST/STM32F0xx/Include
 
 CC = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
