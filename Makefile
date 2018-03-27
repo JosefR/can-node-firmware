@@ -9,7 +9,7 @@ OBJDUMP = arm-none-eabi-objdump
 SIZE = arm-none-eabi-size
 
 
-CFLAGS = -Wall -g -std=c11 -O0 -mlittle-endian -mcpu=cortex-m0  -march=armv6-m -mthumb -ffunction-sections -fdata-sections -Wl,--gc-sections
+CFLAGS = -Wall -g -std=c11 -O0 -mlittle-endian -mcpu=cortex-m0  -march=armv6-m -mfloat-abi=soft -mthumb -ffunction-sections -fdata-sections -Wl,--gc-sections
 
 all: $(PROJECT)
 
