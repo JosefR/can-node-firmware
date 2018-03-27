@@ -1,8 +1,10 @@
 /**
- * @file display.c
+ * @file display.h
  *
  * Module to control the seven segment display.
  */
+#ifndef CANNODE_DISPLAY_H
+#define CANNODE_DISPLAY_H
 
 #define DISPLAY_DOTS_OFF 0
 #define DISPLAY_DOTS_MIDDLE 3
@@ -19,3 +21,5 @@ void display_set(struct display *d, uint8_t digit1, uint8_t digit2,
     uint8_t digit3, uint8_t digit4, uint8_t dot, uint8_t dx);
 
 void display_update(struct display *d);
+
+#endif // CANNODE_DISPLAY_H
