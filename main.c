@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stm32f072xb.h>
 #include "display.h"
+#include "hdc1080.h"
 
 void clock_init()
 {
@@ -52,8 +53,34 @@ void i2c_master_send(uint16_t saddr, uint8_t *data, uint8_t length)
     /* Check Tx empty */
     if ((I2C2->ISR & I2C_ISR_TXE) == I2C_ISR_TXE)
     {
-        I2C2->TXDR = data[0]; /* Byte to send */
-        I2C2->CR2 |= I2C_CR2_START; /* Go */
+        uint32_t tmp = 0;
+
+        tmp = I2C2->CR2;
+        tmp &= ~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
+        tmp |= (uint32_t)(((uint32_t)saddr & I2C_CR2_SADD) | (((uint32_t)length << I2C_CR2_NBYTES_Pos) & I2C_CR2_NBYTES) | I2C_CR2_AUTOEND | I2C_CR2_START );
+        I2C2->CR2 = tmp;
+
+//        while (length-- > 0) {
+            while (!(I2C2->ISR & I2C_ISR_TXIS));
+
+            I2C2->TXDR = *data++; /* Byte to send */
+//        }
+    }
+
+
+}
+
+void i2c_master_read(uint16_t saddr, uint8_t *data, uint8_t length)
+{
+    uint32_t tmp = I2C2->CR2;
+    tmp &= ~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
+    tmp |= (uint32_t)(((uint32_t)saddr & I2C_CR2_SADD) | (((uint32_t)length << I2C_CR2_NBYTES_Pos) & I2C_CR2_NBYTES) | I2C_CR2_AUTOEND | I2C_CR2_START | I2C_CR2_RD_WRN);
+    I2C2->CR2 = tmp;
+
+    int cnt = 0;
+    while (cnt < length) {
+        while (!(I2C2->ISR & I2C_ISR_RXNE));
+        data[cnt++] = I2C2->RXDR;
     }
 }
 
@@ -63,6 +90,18 @@ int main()
     clock_init();
 
     gpio_init();
+
+    i2c2_init();
+
+    uint8_t str[3] = { HDC1080_REG_TEMP };
+
+    i2c_master_send(HDC1080_I2C_ADDR << 1, str, 1);
+    uint32_t cnt = 10000;
+    while (cnt-- > 0);
+    i2c_master_read(HDC1080_I2C_ADDR << 1, str, 2);
+
+    int32_t tmp = (str[0] << 8 |  str[1]) * 165;
+    float temp = (float)tmp / (1<<16) - 40;
 
     struct display dspl = {0};
 
@@ -74,6 +113,9 @@ int main()
 
     while (1) {
         i++;
+
+        str[0] = HDC1080_REG_TEMP;
+        i2c_master_send(HDC1080_I2C_ADDR << 1, str, 1);
 
         if (led) {
             GPIOB->ODR |= (GPIO_ODR_14 | GPIO_ODR_15);
