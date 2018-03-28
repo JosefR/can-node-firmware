@@ -34,74 +34,20 @@ void gpio_init()
         GPIO_MODER_MODER11_0 | GPIO_MODER_MODER12_0;
 }
 
-void i2c2_init()
-{
-    I2C2->CR1 &= ~I2C_CR1_PE; // disable and reset
-
-    I2C2->TIMINGR = (uint32_t)0x2000090e;
-    I2C2->CR2 = I2C_CR2_AUTOEND | (1<<16) | I2C_CR2_RD_WRN
-        | (0x00 << 1);
-    I2C2->CR1 = I2C_CR1_RXIE;
-
-
-    I2C2->CR1 |= I2C_CR1_PE; // enable
-
-}
-
-void i2c_master_send(uint16_t saddr, uint8_t *data, uint8_t length)
-{
-    /* Check Tx empty */
-    if ((I2C2->ISR & I2C_ISR_TXE) == I2C_ISR_TXE)
-    {
-        uint32_t tmp = 0;
-
-        tmp = I2C2->CR2;
-        tmp &= ~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
-        tmp |= (uint32_t)(((uint32_t)saddr & I2C_CR2_SADD) | (((uint32_t)length << I2C_CR2_NBYTES_Pos) & I2C_CR2_NBYTES) | I2C_CR2_AUTOEND | I2C_CR2_START );
-        I2C2->CR2 = tmp;
-
-//        while (length-- > 0) {
-            while (!(I2C2->ISR & I2C_ISR_TXIS));
-
-            I2C2->TXDR = *data++; /* Byte to send */
-//        }
-    }
-
-
-}
-
-void i2c_master_read(uint16_t saddr, uint8_t *data, uint8_t length)
-{
-    uint32_t tmp = I2C2->CR2;
-    tmp &= ~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
-    tmp |= (uint32_t)(((uint32_t)saddr & I2C_CR2_SADD) | (((uint32_t)length << I2C_CR2_NBYTES_Pos) & I2C_CR2_NBYTES) | I2C_CR2_AUTOEND | I2C_CR2_START | I2C_CR2_RD_WRN);
-    I2C2->CR2 = tmp;
-
-    int cnt = 0;
-    while (cnt < length) {
-        while (!(I2C2->ISR & I2C_ISR_RXNE));
-        data[cnt++] = I2C2->RXDR;
-    }
-}
-
-
 int main()
 {
     clock_init();
 
     gpio_init();
 
-    i2c2_init();
+    struct i2c i2c_h;
+    struct hdc1080 hdc1080_h;
 
-    uint8_t str[3] = { HDC1080_REG_TEMP };
+    i2c_master_init(&i2c_h, I2C2);
+    hdc_1080_init(&hdc1080_h, &i2c_h);
 
-    i2c_master_send(HDC1080_I2C_ADDR << 1, str, 1);
-    uint32_t cnt = 10000;
-    while (cnt-- > 0);
-    i2c_master_read(HDC1080_I2C_ADDR << 1, str, 2);
-
-    int32_t tmp = (str[0] << 8 |  str[1]) * 165;
-    float temp = (float)tmp / (1<<16) - 40;
+    hdc_1080_read_temp(&hdc1080_h);
+    hdc_1080_read_humidity(&hdc1080_h);
 
     struct display dspl = {0};
 
@@ -112,10 +58,6 @@ int main()
 
 
     while (1) {
-        i++;
-
-        str[0] = HDC1080_REG_TEMP;
-        i2c_master_send(HDC1080_I2C_ADDR << 1, str, 1);
 
         if (led) {
             GPIOB->ODR |= (GPIO_ODR_14 | GPIO_ODR_15);

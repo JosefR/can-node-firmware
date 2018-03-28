@@ -1,6 +1,6 @@
 PROJECT=can-node-firmware
 
-SRC = hdc1080.c display.c start.s main.c
+SRC = hdc1080.c i2c.c display.c start.s main.c
 INC = -ICMSIS/Include -ICMSIS/Device/ST/STM32F0xx/Include
 
 CC = arm-none-eabi-gcc

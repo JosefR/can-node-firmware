@@ -37,6 +37,8 @@ display.c
 display.h
 hdc1080.c
 hdc1080.h
+i2c.c
+i2c.h
 main.c
 start.s
 stm32f072rb.ld
