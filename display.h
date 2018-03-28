@@ -10,6 +10,11 @@
 #define DISPLAY_DOTS_MIDDLE 3
 #define DISPLAY_DOTS_UP 4
 
+#define DISPLAY_SEVENSEGMENT_OFF 16
+#define DISPLAY_SEVENSEGMENT_ALL 17
+#define DISPLAY_SEVENSEGMENT_MINUS 18
+#define DISPLAY_SEVENSEGMENT_H 19
+
 #define DISPLAY_NODOT 4 // no comma/dot
 
 struct display {
@@ -19,6 +24,8 @@ struct display {
 
 void display_set(struct display *d, uint8_t digit1, uint8_t digit2,
     uint8_t digit3, uint8_t digit4, uint8_t dot, uint8_t dx);
+
+void display_set_temperature(struct display *d, float temp);
 
 void display_update(struct display *d);
 

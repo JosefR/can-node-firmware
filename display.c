@@ -65,3 +65,14 @@ void display_update(struct display *d)
     if (++(d->current) == 5)
         d->current = 0;
 }
+
+void display_set_temperature(struct display *d, float temp)
+{
+    uint8_t neg = temp < 0;
+    display_set(d, 0xc, (int)(temp * 10.0f) % 10, (int)temp % 10,
+        neg ? (
+            (temp < 10) ? DISPLAY_SEVENSEGMENT_MINUS
+                : ((int)(temp / 10.0f) % 10)
+        ) : ((temp < 10) ? DISPLAY_SEVENSEGMENT_OFF : ((int)(temp / 10.0f) % 10)
+        ), 2, DISPLAY_DOTS_UP );
+}

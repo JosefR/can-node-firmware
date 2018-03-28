@@ -36,12 +36,13 @@ void gpio_init()
 
 int main()
 {
+    struct i2c i2c_h;
+    struct hdc1080 hdc1080_h;
+    struct display dspl_h = {{0}, 0};
+
     clock_init();
 
     gpio_init();
-
-    struct i2c i2c_h;
-    struct hdc1080 hdc1080_h;
 
     i2c_master_init(&i2c_h, I2C2);
     hdc_1080_init(&hdc1080_h, &i2c_h);
@@ -49,16 +50,11 @@ int main()
     hdc_1080_read_temp(&hdc1080_h);
     hdc_1080_read_humidity(&hdc1080_h);
 
-    struct display dspl = {0};
 
-    int i;
     bool led = 1;
 
-    display_set(&dspl, 0, 1, 2, 3, 1, 0);
-
-
+    display_set_temperature(&dspl_h, hdc1080_h.temp);
     while (1) {
-
         if (led) {
             GPIOB->ODR |= (GPIO_ODR_14 | GPIO_ODR_15);
         } else {
@@ -67,7 +63,7 @@ int main()
 
         led = !led;
 
-        display_update(&dspl);
+        display_update(&dspl_h);
 
         // sleep some time
         //for (int a = 100; a > 0; a--);
