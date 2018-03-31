@@ -33,6 +33,8 @@ CMSIS/Include/core_cmSimd.h
 CMSIS/Include/core_sc000.h
 CMSIS/Include/core_sc300.h
 Makefile
+can.c
+can.h
 display.c
 display.h
 hdc1080.c
