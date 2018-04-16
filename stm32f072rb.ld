@@ -35,7 +35,10 @@ SECTIONS
 
     .bss :
     {
+        . = ALIGN(4);
         __bss_start__ = .;
+        *(.bss)
+        . = ALIGN(4);
         __bss_end__ = .;
     } >ram
 
