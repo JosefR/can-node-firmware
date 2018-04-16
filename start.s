@@ -19,7 +19,7 @@
 .word 0
 .word 0
 .word failure_handler // PendSV
-.word failure_handler // SysTick
+.word systick_handler // SysTick
 .word failure_handler // WWDG
 .word failure_handler // PVD_VDDIO2
 .word failure_handler // RTC
@@ -60,11 +60,27 @@
 .weak reset_handler
 .type reset_handler, %function
 reset_handler:
-ldr r0, =_stack_end
-mov sp, r0
-bl main
-b failure_handler
+    ldr r0, =_stack_end
+    mov sp, r0
 
+    ldr r1, =__bss_start__
+    mov r2, r1
+    ldr r3, =__bss_end__
+    movs r4, #0
+loop_fillzero_bss:
+    str r4, [r2]
+    adds r2, #4
+    subs r5, r2, r3
+    cmp r5, #4
+    bne loop_fillzero_bss
+
+    bl main
+    b failure_handler
+
+.weak systick_handler
+.type systick_handler, %function
+systick_handler:
+b .
 
 .weak failure_handler
 .type failure_handler, %function

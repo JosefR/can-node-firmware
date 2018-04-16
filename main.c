@@ -5,6 +5,21 @@
 #include "hdc1080.h"
 #include "can.h"
 
+static volatile uint32_t timer_ms;
+
+void systick_handler()
+{
+    timer_ms++;
+}
+
+void sys_tick_init(uint32_t ticks)
+{
+    uint32_t ret = SysTick_Config(ticks);
+    //SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
+    NVIC_SetPriority(SysTick_IRQn, 0);
+    return;
+}
+
 void clock_init()
 {
     // just use the default internal RC oscillator for now
@@ -17,6 +32,8 @@ void clock_init()
 
     // enable CAN clock
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
+
+    sys_tick_init(8000);
 }
 
 void gpio_init()
@@ -56,6 +73,8 @@ int main()
     struct hdc1080 hdc1080_h;
     struct display dspl_h = {{0}, 0};
     uint8_t can_data[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+
+    timer_ms = 0;
 
     clock_init();
 
