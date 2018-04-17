@@ -4,21 +4,9 @@
 #include "display.h"
 #include "hdc1080.h"
 #include "can.h"
-
-static volatile uint64_t systick_ms;
-
-void systick_handler()
-{
-    systick_ms++;
-}
-
-void sys_tick_init(uint32_t ticks)
-{
-    uint32_t ret = SysTick_Config(ticks);
-    //SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
-    NVIC_SetPriority(SysTick_IRQn, 0);
-    return;
-}
+#include "systick.h"
+#include "scheduler.h"
+#include "err.h"
 
 void clock_init()
 {
@@ -33,7 +21,7 @@ void clock_init()
     // enable CAN clock
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
 
-    sys_tick_init(8000);
+    systick_init(8000);
 }
 
 void gpio_init()
@@ -66,6 +54,11 @@ void gpio_init()
         GPIO_MODER_MODER11_0 | GPIO_MODER_MODER12_0;
 }
 
+void read_sensors()
+{
+    // TODO
+}
+
 int main()
 {
     struct can can_h;
@@ -74,9 +67,10 @@ int main()
     struct display dspl_h = {{0}, 0};
     uint8_t can_data[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-    systick_ms = 0;
+    struct task task_read_sensors = { &read_sensors };
 
     clock_init();
+
 
     gpio_init();
 
@@ -96,9 +90,12 @@ int main()
 
     display_set_temperature(&dspl_h, hdc1080_h.temp);
 
-    uint64_t last_run_ms = systick_ms;
-    while (1) {
+    scheduler_init();
+    scheduler_add_task(&task_read_sensors);
 
+    while (1) {
+        struct task *current_task = scheduler_get_next_task();
+        current_task->run();
 
         can_send(&can_h, 0x5, can_data);
 
@@ -113,22 +110,7 @@ int main()
         display_set_integer(&dspl_h, systick_ms / 1000);
         display_update(&dspl_h);
 
-
         // idle until next 1ms iteration
-        while (1) {
-            __disable_irq();
-            if (last_run_ms < systick_ms) {
-                last_run_ms = systick_ms;
-                __enable_irq();
-                break;
-            }
-            __enable_irq();
-
-            // reduce irq
-            int cnt = 100;
-            while (cnt--) {
-                __ASM volatile ("nop" : : : );
-            }
-        }
+        //systick_idle();
     }
 }

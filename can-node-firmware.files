@@ -1,3 +1,9 @@
+err.h
+scheduler.c
+scheduler.h
+systick.c
+systick.h
+task.h
 CMSIS/Device/ST/STM32F0xx/Include/stm32f030x6.h
 CMSIS/Device/ST/STM32F0xx/Include/stm32f030x8.h
 CMSIS/Device/ST/STM32F0xx/Include/stm32f030xc.h
