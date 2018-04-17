@@ -76,3 +76,30 @@ void display_set_temperature(struct display *d, float temp)
         ) : ((temp < 10) ? DISPLAY_SEVENSEGMENT_OFF : ((int)(temp / 10.0f) % 10)
         ), 2, DISPLAY_DOTS_UP );
 }
+
+void display_set_integer(struct display *d, int val)
+{
+    char neg = val < 0;
+    char invalid = 0;
+
+    if (neg) {
+        val = -val;
+        if (val > 999)
+            invalid = 1;
+    } else {
+        if (val > 9999)
+            invalid = 1;
+    }
+
+    char num_digit = val < 10 ? 1 : (val < 100 ? 2 : (val < 1000 ? 3 : 4));
+
+    if (!invalid) {
+        display_set(d,
+            val % 10,
+            num_digit > 1 ? (val % 100 / 10) : DISPLAY_SEVENSEGMENT_OFF,
+            num_digit > 2 ? (val % 1000 / 100) : DISPLAY_SEVENSEGMENT_OFF,
+            num_digit > 3 ? (val % 10000 / 1000) : (neg ?
+                DISPLAY_SEVENSEGMENT_MINUS : DISPLAY_SEVENSEGMENT_OFF),
+            DISPLAY_NODOT, DISPLAY_DOTS_OFF);
+    }
+}

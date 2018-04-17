@@ -27,6 +27,8 @@ void display_set(struct display *d, uint8_t digit1, uint8_t digit2,
 
 void display_set_temperature(struct display *d, float temp);
 
+void display_set_integer(struct display *d, int val);
+
 void display_update(struct display *d);
 
 #endif // CANNODE_DISPLAY_H

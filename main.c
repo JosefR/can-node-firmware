@@ -5,11 +5,11 @@
 #include "hdc1080.h"
 #include "can.h"
 
-static volatile uint32_t timer_ms;
+static volatile uint64_t systick_ms;
 
 void systick_handler()
 {
-    timer_ms++;
+    systick_ms++;
 }
 
 void sys_tick_init(uint32_t ticks)
@@ -74,7 +74,7 @@ int main()
     struct display dspl_h = {{0}, 0};
     uint8_t can_data[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-    timer_ms = 0;
+    systick_ms = 0;
 
     clock_init();
 
@@ -95,7 +95,11 @@ int main()
     bool led = 1;
 
     display_set_temperature(&dspl_h, hdc1080_h.temp);
+
+    uint64_t last_run_ms = systick_ms;
     while (1) {
+
+
         can_send(&can_h, 0x5, can_data);
 
         if (led) {
@@ -106,9 +110,25 @@ int main()
 
         led = !led;
 
+        display_set_integer(&dspl_h, systick_ms / 1000);
         display_update(&dspl_h);
 
-        // sleep some time
-        //for (int a = 100; a > 0; a--);
+
+        // idle until next 1ms iteration
+        while (1) {
+            __disable_irq();
+            if (last_run_ms < systick_ms) {
+                last_run_ms = systick_ms;
+                __enable_irq();
+                break;
+            }
+            __enable_irq();
+
+            // reduce irq
+            int cnt = 100;
+            while (cnt--) {
+                __ASM volatile ("nop" : : : );
+            }
+        }
     }
 }
