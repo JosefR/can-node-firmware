@@ -38,6 +38,7 @@ SECTIONS
         . = ALIGN(4);
         __bss_start__ = .;
         *(.bss)
+        *(.bss*)
         . = ALIGN(4);
         __bss_end__ = .;
     } >ram

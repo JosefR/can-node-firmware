@@ -68,11 +68,12 @@ reset_handler:
     ldr r3, =__bss_end__
     movs r4, #0
 loop_fillzero_bss:
+    cmp r2, r3
+    beq fillzero_bss_end
     str r4, [r2]
     adds r2, #4
-    subs r5, r2, r3
-    cmp r5, #4
-    bne loop_fillzero_bss
+    b loop_fillzero_bss
+fillzero_bss_end:
 
     bl main
     b failure_handler
