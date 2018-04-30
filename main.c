@@ -12,8 +12,11 @@ void clock_init()
 {
     // just use the default internal RC oscillator for now
 
-    // enable GPIO peripheral clock for port B and C
-    RCC->AHBENR |= RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN;
+    // enable GPIO peripheral clock for port A, B and C
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN;
+
+    // enable UART1 clock
+    RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
 
     // enable I2C2 Clock
     RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
@@ -27,6 +30,16 @@ void clock_init()
 void gpio_init()
 {
     uint32_t tmp;
+
+    // set A0 amd A10 to alternate function
+    tmp = GPIOA->MODER;
+    tmp |= GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1;
+    GPIOA->MODER = tmp;
+
+    // A9: USART1_TX, A10: USART1_RX
+    tmp = GPIOA->AFR[1];
+    tmp |= 0x1 << GPIO_AFRH_AFRH1_Pos | 0x1 << GPIO_AFRH_AFRH2_Pos;
+    GPIOA->AFR[1] = tmp;
 
     // set B14 and B15 to output, B8, B9, B10 and B11 to alternate function
     tmp = GPIOB->MODER;
@@ -54,6 +67,39 @@ void gpio_init()
         GPIO_MODER_MODER11_0 | GPIO_MODER_MODER12_0;
 }
 
+void usart1_handler()
+{
+
+}
+
+void uart_init()
+{
+    USART1->BRR = 80000 / 96;
+    USART1->CR1 = USART_CR1_TE | USART_CR1_UE;
+}
+
+void uart_send()
+{
+    uint32_t tmp = USART1->ISR;
+
+    USART1->TDR = 'm';
+
+
+//    if ((USART1->ISR & USART_ISR_TC) == USART_ISR_TC)
+//    {
+//    if (send == sizeof(stringtosend))
+//    {
+//    send=0;
+//    USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
+//    }
+//    else
+//    {
+//    /* clear transfer complete flag and fill TDR with a new char */
+//    USART1->TDR = stringtosend[send++];
+//    }
+//    }
+}
+
 void read_sensors()
 {
     // TODO
@@ -73,6 +119,8 @@ int main()
 
 
     gpio_init();
+
+    uart_init();
 
     int cnt = 10000;
     while (cnt--);
@@ -94,6 +142,8 @@ int main()
     scheduler_add_task(&task_read_sensors);
 
     while (1) {
+        uart_send();
+
         struct task *current_task = scheduler_get_next_task();
         current_task->run();
 
@@ -107,7 +157,7 @@ int main()
 
         led = !led;
 
-        display_set_integer(&dspl_h, systick_ms / 1000);
+        //display_set_integer(&dspl_h, systick_ms / 1000);
         display_update(&dspl_h);
 
         // idle until next 1ms iteration
