@@ -50,7 +50,7 @@
 .word usart1_handler // USART1
 .word failure_handler // USART2
 .word failure_handler // USART3_4_5_6_7_8
-.word failure_handler // CEC_CAN
+.word can_irq_handler // CEC_CAN
 .word failure_handler // USB
 
 
