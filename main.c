@@ -110,9 +110,13 @@ void read_sensors()
     // TODO
 }
 
+void can_rx_cb(uint16_t can_id, uint32_t data_l, uint32_t data_h, uint8_t len)
+{
+    // TODO
+}
+
 int main()
 {
-    struct can can_h;
     struct i2c i2c_h;
     struct hdc1080 hdc1080_h;
     struct display dspl_h = {{0}, 0};
@@ -129,7 +133,8 @@ int main()
 
     int cnt = 10000;
     while (cnt--);
-    can_init(&can_h, CAN);
+
+    can_init(&can_rx_cb);
 
     i2c_master_init(&i2c_h, I2C2);
     hdc_1080_init(&hdc1080_h, &i2c_h);
@@ -137,7 +142,7 @@ int main()
     hdc_1080_read_temp(&hdc1080_h);
     hdc_1080_read_humidity(&hdc1080_h);
 
-	can_send(&can_h, 0b10101010101, can_data);
+    //can_send(0b10101010101, can_data);
 
     bool led = 1;
 
@@ -155,9 +160,7 @@ int main()
 		uint16_t can_revc_id;
 		uint8_t can_recv_data[8];
 
-		can_send(&can_h, 0b10101010101, can_data);
-		if (can_receive(&can_h, &can_revc_id, can_recv_data)) {
-		}
+        can_send(0b10101010101, can_data);
 
 
 		if (led) {
@@ -172,6 +175,6 @@ int main()
         display_update(&dspl_h);
 
         // idle until next 1ms iteration
-        //systick_idle();
+        systick_idle();
     }
 }

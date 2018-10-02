@@ -7,14 +7,14 @@
 #include <stdbool.h>
 #include "stm32f072xb.h"
 
-struct can {
-    CAN_TypeDef *can;
-};
+typedef  void (*can_rx_callback)(uint16_t, uint32_t, uint32_t, uint8_t);
 
-void can_init(struct can *h, CAN_TypeDef *can);
+struct can;
 
-void can_send(struct can *h, uint16_t can_id, uint8_t msg[8]);
+void can_init(can_rx_callback cb);
 
-bool can_receive(struct can *h, uint16_t *can_id, uint8_t *msg[8]);
+void can_send(uint16_t can_id, uint8_t msg[8]);
 
-#endif // CANNODE_CAN_H
+bool can_receive(uint16_t* can_id, uint8_t* msg[8]);
+
+#endif  // CANNODE_CAN_H
