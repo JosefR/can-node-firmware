@@ -74,7 +74,7 @@ void usart1_handler()
 
 void uart_init()
 {
-    USART1->BRR = 80000 / 96;
+	USART1->BRR = 80000 / 1152;
     USART1->CR1 = USART_CR1_TE | USART_CR1_UE;
 }
 
@@ -100,6 +100,11 @@ void uart_send()
 //    }
 }
 
+void uart_sendc(char c)
+{
+	USART1->TDR = c;
+}
+
 void read_sensors()
 {
     // TODO
@@ -111,7 +116,7 @@ int main()
     struct i2c i2c_h;
     struct hdc1080 hdc1080_h;
     struct display dspl_h = {{0}, 0};
-    uint8_t can_data[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	uint8_t can_data[] = { 0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7 };
 
     struct task task_read_sensors = { &read_sensors };
 
@@ -132,7 +137,7 @@ int main()
     hdc_1080_read_temp(&hdc1080_h);
     hdc_1080_read_humidity(&hdc1080_h);
 
-    can_send(&can_h, 0x5, can_data);
+	can_send(&can_h, 0b10101010101, can_data);
 
     bool led = 1;
 
@@ -147,9 +152,15 @@ int main()
         struct task *current_task = scheduler_get_next_task();
         current_task->run();
 
-        can_send(&can_h, 0x5, can_data);
+		uint16_t can_revc_id;
+		uint8_t can_recv_data[8];
 
-        if (led) {
+		can_send(&can_h, 0b10101010101, can_data);
+		if (can_receive(&can_h, &can_revc_id, can_recv_data)) {
+		}
+
+
+		if (led) {
             GPIOB->ODR |= (GPIO_ODR_14 | GPIO_ODR_15);
         } else {
             GPIOB->ODR &= ~(GPIO_ODR_14 | GPIO_ODR_15);
