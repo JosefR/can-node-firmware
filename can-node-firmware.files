@@ -1,3 +1,5 @@
+uart.c
+uart.h
 err.h
 scheduler.c
 scheduler.h

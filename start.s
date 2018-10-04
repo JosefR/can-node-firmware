@@ -47,10 +47,10 @@
 .word failure_handler // I2C2
 .word failure_handler // SPI1
 .word failure_handler // SPI2
-.word usart1_handler // USART1
+.word usart1_isr      // USART1
 .word failure_handler // USART2
 .word failure_handler // USART3_4_5_6_7_8
-.word can_irq_handler // CEC_CAN
+.word can_isr         // CEC_CAN
 .word failure_handler // USB
 
 
@@ -81,11 +81,6 @@ fillzero_bss_end:
 .weak systick_handler
 .type systick_handler, %function
 systick_handler:
-b .
-
-.weak usart1_handler
-.type usart1_handler, %function
-usart1_handler:
 b .
 
 .weak failure_handler

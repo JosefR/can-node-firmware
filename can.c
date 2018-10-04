@@ -7,7 +7,7 @@ static struct can {
     can_rx_callback rx_cb;
 } s_can;
 
-void can_irq_handler()
+void can_isr()
 {
     uint16_t can_id;
     uint8_t can_msg[8];
