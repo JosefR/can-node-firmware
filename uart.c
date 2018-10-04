@@ -70,24 +70,22 @@ void uart_send_data(enum UART id, const uint8_t *data, int len)
         if (wrap) {
             int bytes_to_end = UART_TX_BUFFER_SIZE - h->tx_end;
             // max_copy = bytes_to_end + h->tx_next;
-            int num_copy;
-            if (remaining <= bytes_to_end) {
-                num_copy = remaining;
-            } else {
-                num_copy = bytes_to_end;
-            }
-
-            memcpy(h->tx_buffer + h->tx_end, src_ptr, num_copy);
-            src_ptr += num_copy;
-            remaining -= num_copy;
-
-            if (remaining > 0) {
-                // needs wrap around
-                num_copy = (h->tx_next <= remaining) ? remaining : h->tx_next;
-                memcpy(h->tx_buffer, src_ptr, num_copy);
-                h->tx_end = num_copy - 1;
+            int num_copy
+                    = (remaining <= bytes_to_end) ? remaining : bytes_to_end;
+            if (num_copy != 0) {
+                memcpy(h->tx_buffer + h->tx_end, src_ptr, num_copy);
                 src_ptr += num_copy;
                 remaining -= num_copy;
+            }
+            if (remaining > 0) {
+                // needs wrap around
+                num_copy = (h->tx_next < remaining) ? h->tx_next : remaining;
+                if (num_copy != 0) {
+                    memcpy(h->tx_buffer, src_ptr, num_copy);
+                    h->tx_end = num_copy - 1;
+                    src_ptr += num_copy;
+                    remaining -= num_copy;
+                }
             } else {
                 h->tx_end += num_copy;
             }
