@@ -22,7 +22,6 @@ void can_isr()
         msg_l = CAN->sFIFOMailBox[0].RDLR; /* read data */
         msg_h = CAN->sFIFOMailBox[0].RDHR; /* read data */
 
-        // TODO: execute callback
         if (s_can.rx_cb) {
             // TODO: length
             s_can.rx_cb(can_id, msg_l, msg_h, 8);

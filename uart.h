@@ -17,6 +17,12 @@ struct uart;
 
 void uart_init(enum UART id, uint32_t baud);
 
+/**
+ * @brief Sends data over UART
+ * @param id The UART device to use
+ * @param data A buffer that contains the data to be sent.
+ * @param len The number of bytes to be sent.
+ */
 void uart_send_data(enum UART id, const uint8_t *data, int len);
 
 #endif // CANNODE_UART_H

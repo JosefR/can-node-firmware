@@ -1,6 +1,3 @@
-#include <stdint.h>
-#include <stdbool.h>
-#include <stm32f072xb.h>
 #include "uart.h"
 #include "display.h"
 #include "hdc1080.h"
@@ -8,6 +5,13 @@
 #include "systick.h"
 #include "scheduler.h"
 #include "err.h"
+
+#include <stm32f072xb.h>
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 void clock_init()
 {
@@ -68,28 +72,6 @@ void gpio_init()
         GPIO_MODER_MODER11_0 | GPIO_MODER_MODER12_0;
 }
 
-//void _uart_send()
-//{
-//    uint32_t tmp = USART1->ISR;
-
-//    USART1->TDR = 'm';
-
-
-////    if ((USART1->ISR & USART_ISR_TC) == USART_ISR_TC)
-////    {
-////    if (send == sizeof(stringtosend))
-////    {
-////    send=0;
-////    USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
-////    }
-////    else
-////    {
-////    /* clear transfer complete flag and fill TDR with a new char */
-////    USART1->TDR = stringtosend[send++];
-////    }
-////    }
-//}
-
 void read_sensors()
 {
     // TODO
@@ -97,7 +79,6 @@ void read_sensors()
 
 void can_rx_cb(uint16_t can_id, uint32_t data_l, uint32_t data_h, uint8_t len)
 {
-    // TODO
 }
 
 int main()
@@ -137,8 +118,8 @@ int main()
     scheduler_add_task(&task_read_sensors);
 
     while (1) {
-        const char *str = "TEST\n";
-        uart_send_data(UART1, str, 5);
+        const char *str = "TEST\r\n";
+        uart_send_data(UART1, str, 6);
 
         struct task *current_task = scheduler_get_next_task();
         current_task->run();

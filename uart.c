@@ -16,10 +16,10 @@ static int s_test;
 void transmit_byte(struct uart *h)
 {
     if (h->tx_next != h->tx_end) {
-        h->uart->TDR = h->tx_buffer[h->tx_next++];
+        h->uart->TDR = h->tx_buffer[h->tx_next];
+        h->tx_next = (h->tx_next + 1) % UART_TX_BUFFER_SIZE;
     } else {
-        // finished, disable transmit IRQ again
-        h->uart->ISR &= ~USART_ISR_TXE;
+        h->uart->CR1 &= ~USART_CR1_TXEIE;
     }
 }
 
@@ -47,7 +47,7 @@ void uart_init(enum UART id, uint32_t baud)
 
     h->uart->BRR = 8000000 / baud; // TODO parametrize sys clock value
 
-    // 8N1, enable IRQs: TXE, RXNE/ORE, enable transmitter and receiver, enable
+    // 8N1, enable IRQs: RXNE/ORE, enable transmitter and receiver, enable
     // uart
     h->uart->CR1 |= USART_CR1_RXNEIE | USART_CR1_TE | USART_CR1_RE
             | USART_CR1_UE; // 8N1
@@ -63,7 +63,7 @@ void uart_send_data(enum UART id, const uint8_t *data, int len)
     int remaining = len;
 
     while (remaining > 0) {
-        __disable_irq();
+        NVIC_DisableIRQ(USART1_IRQn);
 
         // copy to TX buffer
         bool wrap = h->tx_next <= h->tx_end;
@@ -82,7 +82,7 @@ void uart_send_data(enum UART id, const uint8_t *data, int len)
                 num_copy = (h->tx_next < remaining) ? h->tx_next : remaining;
                 if (num_copy != 0) {
                     memcpy(h->tx_buffer, src_ptr, num_copy);
-                    h->tx_end = num_copy - 1;
+                    h->tx_end = num_copy;
                     src_ptr += num_copy;
                     remaining -= num_copy;
                 }
@@ -101,25 +101,24 @@ void uart_send_data(enum UART id, const uint8_t *data, int len)
         }
 
         // enable transmit interrupt
-        h->uart->ISR |= USART_ISR_TXE;
+        h->uart->CR1 |= USART_CR1_TXEIE;
 
-        //        // trigger transmit, if it is not active
-        //        if (h->uart->ISR & USART_ISR_TXE) {
-        //            transmit_byte(h);
-        //        }
-
-        __enable_irq();
+        NVIC_EnableIRQ(USART1_IRQn);
 
         // blocking wait if buffer is full
         if (remaining > 0) {
             while (1) {
-                __ISB();
-                __disable_irq();
+                int cnt = 100;
+                while (cnt--) {
+                    __ASM volatile ("nop" : : : );
+                }
+                NVIC_DisableIRQ(USART1_IRQn);
+
                 if (h->uart->ISR & USART_ISR_TXE) {
-                    __enable_irq();
+                    NVIC_EnableIRQ(USART1_IRQn);
                     continue;
                 }
-                __enable_irq();
+                NVIC_EnableIRQ(USART1_IRQn);
             }
         }
     }
